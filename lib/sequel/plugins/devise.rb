@@ -71,13 +71,13 @@ module Sequel
           include OverrideFixes
         end
 
-        Model::HOOKS.each do |hook|
+        Model::HOOKS.reject { |hook| hook == :after_commit }.each do |hook|
           define_method(hook) do |method = nil, options = {}, &block|
             if Symbol === (if_method = options[:if])
               orig_block = block
               block = nil
               method_without_if = method
-              method = :"_sequel_hook_with_if_#{method}"
+              method = :"_sequel_#{hook}_hook_with_if_#{method}"
               define_method(method) do
                 return unless send if_method
                 send method_without_if
@@ -86,6 +86,39 @@ module Sequel
               private method
             end
             super method, &block
+          end
+        end
+
+        define_method(:after_commit) do |method = nil, options = {}, &block|
+          if Symbol === (if_method = options[:if])
+            orig_block = block
+            block = nil
+            method_without_if = method
+            method = :"_sequel_after_commit_hook_with_if_#{method}"
+            define_method(method) do
+              return unless send if_method
+              send method_without_if
+              instance_eval &orig_block if orig_block
+            end
+            private method
+          end
+
+          commit_method = :"_sequel_after_commit_hook__actual_commit_#{method}"
+          define_method(commit_method) do
+            db.after_commit do
+              send method
+              instance_eval &block if block
+            end
+          end
+          private commit_method
+
+          case options[:on]
+          when :create
+            send :after_create, commit_method
+          when :update
+            send :after_update, commit_method
+          else
+            send :after_save, commit_method
           end
         end
       end
