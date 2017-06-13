@@ -2,6 +2,8 @@
 
 Allows the usage of a Sequel::Model class as a Devise mapping.
 
+This gem was previously developed at [rosenfeld/sequel-devise](https://github.com/rosenfeld/sequel-devise).
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -78,3 +80,6 @@ remaining of your application just use your regular user class:
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
 
+## Acknowledgements
+
+Thanks to [@rosenfeld](https://github.com/rosenfeld) for creating this gem before we started maintaining it!
